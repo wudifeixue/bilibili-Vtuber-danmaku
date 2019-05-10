@@ -28,7 +28,7 @@ const openRoom = roomid => {
         await fs.appendFile(`${roomid}/${filename}`, `TIME${lastTime}ONLINE${ws.online}\n`)
       }
       await fs.appendFile(`${roomid}/${filename}`, `${message}\n`)
-      console.log(`${roomid}: ${message}`)
+      // console.log(`${roomid}: ${message}`)
     })
   })
 }
