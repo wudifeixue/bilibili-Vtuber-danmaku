@@ -40,8 +40,17 @@ const openRoom = roomid => {
   // 		storm.push(data.metadata)
   //   }
   // })
-  ws.once('close', async () => {
-    console.log(`CLOSE: ${roomid}`)
+  ws.once('open', () => {
+    ws.once('close', async () => {
+      console.log(`CLOSE: ${roomid}`)
+      await wait(1000)
+      console.log(`REOPEN: ${roomid}`)
+      openRoom(roomid)
+    })
+  })
+  ws.on('error', async () => {
+    console.log(`ERROR: ${roomid}`)
+    ws.terminate()
     await wait(1000)
     console.log(`REOPEN: ${roomid}`)
     openRoom(roomid)
