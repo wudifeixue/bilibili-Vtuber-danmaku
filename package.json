@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "bili-api": "^1.0.1",
+    "bilibili-live-ws": "^1.0.0"
+  }
+}
