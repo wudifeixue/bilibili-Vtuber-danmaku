@@ -72,7 +72,7 @@ const openRoom = roomid => {
       if (!folders.includes(String(object.roomid))) {
         await fs.mkdir(String(object.roomid))
       }
-      console.log(`OPEN: ${mid} - ${object.roomid}`)
+      console.log(`OPEN: ${i + 1}/${vtbs.length} - ${mid} - ${object.roomid}`)
       openRoom(object.roomid)
     }
   }
