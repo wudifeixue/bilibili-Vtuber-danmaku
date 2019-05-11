@@ -62,6 +62,8 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   //   }
   // })
   ws.on('heartbeat', async () => {
+    let date = new Date()
+    let filename = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`
     if (!currentFilename) {
       currentFilename = filename
     }
@@ -137,7 +139,7 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
     let roomsOpen = Object.keys(rooms)
     for (let i = 0; i < roomsOpen.length; i++) {
       if (rooms[roomsOpen[i]]) {
-        if (!roomsEnable.includes(roomsOpen[i])) {
+        if (!roomsEnable.includes(Number(roomsOpen[i]))) {
           console.log(`DISABLE: ${roomsOpen[i]}`);
           rooms[roomsOpen[i]].close()
           rooms[roomsOpen[i]] = false
