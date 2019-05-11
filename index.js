@@ -34,8 +34,10 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
             let speakerNum = Object.keys(speakers).length
             let lastFIleName = currentFilename
             currentFilename = filename
-            speakers = {}
-            await fs.appendFile(`${roomid}/${lastFIleName}`, `SPEAKERNUM${speakerNum}\n`)
+            if (speakerNum) {
+              speakers = {}
+              await fs.appendFile(`${roomid}/${lastFIleName}`, `SPEAKERNUM${speakerNum}\n`)
+            }
           }
           speakers[mid] = true
           if (lastTime !== time) {
@@ -54,6 +56,31 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   // 		storm.push(data.metadata)
   //   }
   // })
+  ws.on('heartbeat', async () => {
+    if (!currentFilename) {
+      currentFilename = filename
+    }
+    if (currentFilename !== filename) {
+      let speakerNum = Object.keys(speakers).length
+      let lastFIleName = currentFilename
+      currentFilename = filename
+      if (speakerNum) {
+        speakers = {}
+        await fs.appendFile(`${roomid}/${lastFIleName}`, `SPEAKERNUM${speakerNum}\n`)
+      }
+    }
+  })
+  ws.on('heartbeat', async online => {
+    if (online > 1) {
+      let date = new Date()
+      let time = `${date.getHours()}:${date.getMinutes()}`
+      let filename = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`
+      if (lastTime !== time) {
+        lastTime = time
+        await fs.appendFile(`${roomid}/${filename}`, `TIME${lastTime}ONLINE${online}\n`)
+      }
+    }
+  })
   ws.once('open', () => {
     ws.once('close', async () => {
       console.log(`CLOSE: ${roomid}`)
