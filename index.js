@@ -1,5 +1,9 @@
 const fs = require('fs').promises
 
+const io = require('socket.io-client')
+const socket = io('http://0.0.0.0:9001')
+const get = (e, target) => new Promise(resolve => socket.emit(e, target, resolve))
+
 const biliAPI = require('bili-api')
 const LiveWS = require('bilibili-live-ws')
 
@@ -11,10 +15,11 @@ const race = (...args) => new Promise((resolve, reject) => {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-const vtbs = require('./vtbs.moe/api/vtbs')
+let rooms = {}
 
 const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   let ws = new LiveWS(roomid)
+  rooms[roomid] = ws
   let lastTime = ''
   // let storm = []
   ws.once('live', () => {
@@ -84,37 +89,60 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   ws.once('open', () => {
     ws.once('close', async () => {
       console.log(`CLOSE: ${roomid}`)
-      await wait(500)
-      console.log(`REOPEN: ${roomid}`)
-      openRoom({ roomid, speakers, currentFilename })
+      if (rooms[roomid]) {
+        await wait(500)
+        console.log(`REOPEN: ${roomid}`)
+        openRoom({ roomid, speakers, currentFilename })
+      }
     })
   })
   ws.on('error', async () => {
     console.log(`ERROR: ${roomid}`)
     ws.terminate()
-    await wait(500)
-    console.log(`REOPEN: ${roomid}`)
-    openRoom({ roomid, speakers, currentFilename })
+    if (rooms[roomid]) {
+      await wait(500)
+      console.log(`REOPEN: ${roomid}`)
+      openRoom({ roomid, speakers, currentFilename })
+    }
   })
 }
 
 (async () => {
-  let folders = await fs.readdir('.')
-  for (let i = 0; i < vtbs.length; i++) {
-    let { mid } = vtbs[i]
-    let object = await race({ mid }, ['roomid'], { wait: 1000 }).catch(() => undefined)
-    if (!object) {
-      i--
-      console.log(`RETRY: ${mid}`)
-      await wait(1000 * 5)
-      continue
-    }
-    if (object.roomid) {
-      if (!folders.includes(String(object.roomid))) {
-        await fs.mkdir(String(object.roomid))
+  for (;;) {
+    await wait(1000 * 1)
+    let folders = await fs.readdir('.')
+    let vtbs = await get('vtbs')
+    let roomsEnable = []
+    for (let i = 0; i < vtbs.length; i++) {
+      let { mid } = vtbs[i]
+      let object = await race({ mid }, ['roomid'], { wait: 1000 }).catch(() => undefined)
+      if (!object) {
+        i--
+        console.log(`RETRY: ${mid}`)
+        await wait(1000 * 5)
+        continue
       }
-      console.log(`OPEN: ${i + 1}/${vtbs.length} - ${mid} - ${object.roomid}`)
-      openRoom({ roomid: object.roomid })
+      if (object.roomid) {
+        let roomid = object.roomid
+        roomsEnable.push(roomid)
+        if (!rooms[roomid]) {
+          if (!folders.includes(String(roomid))) {
+            await fs.mkdir(String(roomid))
+          }
+          console.log(`OPEN: ${i + 1}/${vtbs.length} - ${mid} - ${roomid}`)
+          openRoom({ roomid: roomid })
+        }
+      }
+    }
+    let roomsOpen = Object.keys(rooms)
+    for (let i = 0; i < roomsOpen.length; i++) {
+      if (rooms[roomsOpen[i]]) {
+        if (!roomsEnable.includes(roomsOpen[i])) {
+          console.log(`DISABLE: ${roomsOpen[i]}`);
+          rooms[roomsOpen[i]].close()
+          rooms[roomsOpen[i]] = false
+        }
+      }
     }
   }
 })()
