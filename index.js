@@ -13,19 +13,31 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const vtbs = require('./vtbs.moe/api/vtbs')
 
-const openRoom = roomid => {
+const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   let ws = new LiveWS(roomid)
   let lastTime = ''
-  let storm = []
+  // let storm = []
   ws.once('live', () => {
     console.log(`READY: ${roomid}`)
     ws.on('DANMU_MSG', async ({ info }) => {
       if (!info[0][9]) {
         let message = info[1]
         if (!message.includes('TIME') || !message.includes('ONLINE')) {
+          let mid = info[2][0]
           let date = new Date()
           let filename = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`
           let time = `${date.getHours()}:${date.getMinutes()}`
+          if (!currentFilename) {
+            currentFilename = filename
+          }
+          if (currentFilename !== filename) {
+            let speakerNum = Object.keys(speakers).length
+            let lastFIleName = currentFilename
+            currentFilename = filename
+            speakers = {}
+            await fs.appendFile(`${roomid}/${lastFIleName}`, `SPEAKERNUM${speakerNum}\n`)
+          }
+          speakers[mid] = true
           if (lastTime !== time) {
             lastTime = time
             await fs.appendFile(`${roomid}/${filename}`, `TIME${lastTime}ONLINE${ws.online}\n`)
@@ -47,7 +59,7 @@ const openRoom = roomid => {
       console.log(`CLOSE: ${roomid}`)
       await wait(1000)
       console.log(`REOPEN: ${roomid}`)
-      openRoom(roomid)
+      openRoom({ roomid, speakers, currentFilename })
     })
   })
   ws.on('error', async () => {
@@ -55,7 +67,7 @@ const openRoom = roomid => {
     ws.terminate()
     await wait(1000)
     console.log(`REOPEN: ${roomid}`)
-    openRoom(roomid)
+    openRoom({ roomid, speakers, currentFilename })
   })
 }
 
@@ -75,7 +87,7 @@ const openRoom = roomid => {
         await fs.mkdir(String(object.roomid))
       }
       console.log(`OPEN: ${i + 1}/${vtbs.length} - ${mid} - ${object.roomid}`)
-      openRoom(object.roomid)
+      openRoom({ roomid: object.roomid })
     }
   }
 })()
