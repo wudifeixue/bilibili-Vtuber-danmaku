@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "bili-api": "^1.0.1",
-    "bilibili-live-ws": "^1.0.0",
+    "bilibili-live-ws": "^1.1.1",
     "socket.io-client": "^2.2.0"
   }
 }
