@@ -22,15 +22,17 @@ const openRoom = roomid => {
     ws.on('DANMU_MSG', async ({ info }) => {
       if (!info[0][9]) {
         let message = info[1]
-        let date = new Date()
-        let filename = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`
-        let time = `${date.getHours()}:${date.getMinutes()}`
-        if (lastTime !== time) {
-          lastTime = time
-          await fs.appendFile(`${roomid}/${filename}`, `TIME${lastTime}ONLINE${ws.online}\n`)
+        if (!message.includes('TIME') || !message.includes('ONLINE')) {
+          let date = new Date()
+          let filename = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`
+          let time = `${date.getHours()}:${date.getMinutes()}`
+          if (lastTime !== time) {
+            lastTime = time
+            await fs.appendFile(`${roomid}/${filename}`, `TIME${lastTime}ONLINE${ws.online}\n`)
+          }
+          await fs.appendFile(`${roomid}/${filename}`, `${message}\n`)
+          // console.log(`${roomid}: ${message}`)
         }
-        await fs.appendFile(`${roomid}/${filename}`, `${message}\n`)
-        // console.log(`${roomid}: ${message}`)
       }
     })
   })
