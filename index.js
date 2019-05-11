@@ -57,7 +57,7 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   ws.once('open', () => {
     ws.once('close', async () => {
       console.log(`CLOSE: ${roomid}`)
-      await wait(1000)
+      await wait(500)
       console.log(`REOPEN: ${roomid}`)
       openRoom({ roomid, speakers, currentFilename })
     })
@@ -65,7 +65,7 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
   ws.on('error', async () => {
     console.log(`ERROR: ${roomid}`)
     ws.terminate()
-    await wait(1000)
+    await wait(500)
     console.log(`REOPEN: ${roomid}`)
     openRoom({ roomid, speakers, currentFilename })
   })
