@@ -111,7 +111,6 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
 
 (async () => {
   for (;;) {
-    await wait(1000 * 60 * 60)
     let folders = await fs.readdir('.')
     let vtbs = await get('vtbs')
     let roomsEnable = []
@@ -147,5 +146,6 @@ const openRoom = ({ roomid, speakers = {}, currentFilename = undefined }) => {
       }
     }
     console.log('REFRESH')
+    await wait(1000 * 60 * 60)
   }
 })()
