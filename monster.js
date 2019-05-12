@@ -5,6 +5,10 @@ const nodejieba = require('nodejieba')
 // const Server = require('socket.io')
 // const io = new Server(9002, { serveClient: false, path: '/' })
 
+nodejieba.load({
+  userDict: 'userdict.txt',
+})
+
 // io.on('connection', socket => {
 //   socket.on('wow', console.log)
 // })
