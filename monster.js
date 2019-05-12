@@ -6,7 +6,7 @@ const nodejieba = require('nodejieba')
 // const io = new Server(9002, { serveClient: false, path: '/' })
 
 nodejieba.load({
-  userDict: 'userdict.txt',
+  userDict: 'dictionary/userdict.txt',
 })
 
 // io.on('connection', socket => {
