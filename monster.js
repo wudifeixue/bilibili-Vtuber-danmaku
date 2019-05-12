@@ -18,6 +18,6 @@ nodejieba.load({
     .split('\n')
     .filter(w => !(w.includes('TIME') && w.includes('ONLINE') || w.includes('SPEAKERNUM')))
     .join('\n')
-  nodejieba.extract(day, 250).forEach(w => console.log(`${w.word};${Math.round(Math.log(w.weight))}`))
+  nodejieba.extract(day, 250).forEach(w => console.log(`${w.word};${Math.round(w.weight)}`))
   // nodejieba.extract(day, 100).forEach(w => console.log(w))
 })()
